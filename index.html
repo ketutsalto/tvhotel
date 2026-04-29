@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Welcome Hotel (Offline Mode)</title>
+<title>Welcome Hotel</title>
 
 <style>
 body {
@@ -44,50 +44,79 @@ body {
     <h2 id="guestName">Welcome</h2>
 </div>
 
-<script>
-// 🔥 Ambil parameter dari URL
-const params = new URLSearchParams(window.location.search);
-const themeParam = params.get("theme") || "default";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-// 🔥 DATA DUMMY (bisa kamu ganti bebas)
-const data = {
-    name: "Michael & Sarah",
-    theme: themeParam
+// 🔥 CONFIG KAMU
+const firebaseConfig = {
+  apiKey: "AIzaSyCRTRfBJXa6dIvl__fchkFCaHZr5ZakTrA",
+  authDomain: "tvhotel-e6555.firebaseapp.com",
+  databaseURL: "https://tvhotel-e6555-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "tvhotel-e6555",
+  storageBucket: "tvhotel-e6555.firebasestorage.app",
+  messagingSenderId: "1082612267063",
+  appId: "1:1082612267063:web:1144e0a1e92e99bc0127b2"
 };
 
-// 🔥 MAPPING BACKGROUND
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// 🔥 PARAMETER
+const params = new URLSearchParams(window.location.search);
+const room = params.get("room") || "101";
+const mode = params.get("mode") || "online";
+
+// 🔥 THEMES (SESUAI DESIGN KAMU)
 const themes = {
     default: "design.jpg",
     wedding: "wedding.jpg"
 };
 
+// 🔥 RENDER
 function render(data) {
     const el = document.getElementById("guestName");
     const container = document.getElementById("guestContainer");
 
-    const theme = data.theme || "default";
+    const theme = data?.theme || "default";
 
-    // 🎨 SET BACKGROUND
+    // BACKGROUND
     document.body.style.backgroundImage = `url('${themes[theme]}')`;
 
-    // 💬 SET TEXT + POSISI
+    // TEXT + POSISI (SUDAH AMAN DARI DESIGN KAMU)
     if (theme === "wedding") {
-        el.innerText = "Happy Wedding\n" + data.name;
+        el.innerText = "Happy Wedding\n" + (data?.name || "");
 
-        // posisi kanan (biar tidak nabrak desain wedding)
         container.style.left = "0%";
         container.style.width = "55%";
     } else {
-        el.innerText = "Welcome\n" + data.name;
+        el.innerText = data?.name
+            ? "Welcome\n" + data.name
+            : "Our Valued Guest";
 
-        // posisi kiri (default design kamu)
         container.style.left = "0";
         container.style.width = "55%";
     }
 }
 
-// 🔥 RUN
-render(data);
+// 🔌 MODE
+if (mode === "offline") {
+    console.log("OFFLINE MODE");
+
+    render({
+        name: "Michael & Sarah",
+        theme: "wedding"
+    });
+
+} else {
+    console.log("ONLINE MODE");
+
+    const guestRef = ref(db, "rooms/" + room);
+
+    onValue(guestRef, (snapshot) => {
+        render(snapshot.val());
+    });
+}
 </script>
 
 </body>
