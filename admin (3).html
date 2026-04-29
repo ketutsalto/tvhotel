@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reception Control</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    margin: 0;
+    background: linear-gradient(135deg, #0f2a3f, #1f3d55);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 420px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+h1 {
+    text-align: center;
+    color: white;
+    margin-bottom: 25px;
+    font-size: 22px;
+}
+
+input {
+    width: 100%;
+    padding: 16px;
+    margin-bottom: 15px;
+    border-radius: 14px;
+    border: none;
+    font-size: 16px;
+    outline: none;
+}
+
+button {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.save {
+    background: linear-gradient(90deg, #f6d365, #fda085);
+    color: black;
+}
+
+.clear {
+    background: #555;
+    color: white;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* STATUS */
+#status {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 14px;
+    opacity: 0;
+    transition: 0.3s;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Reception Control</h1>
+
+    <input id="room" type="number" placeholder="Room Number (ex: 101)">
+    <input id="name" type="text" placeholder="Guest Name">
+
+    <button class="save" onclick="save()">SAVE</button>
+    <button class="clear" onclick="clearRoom()">CLEAR ROOM</button>
+
+    <div id="status"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCURdL6FcrTEitATpSh_8LgRgcj6Fi8gw",
+  authDomain: "hotel-welcome-f97c0.firebaseapp.com",
+  databaseURL: "https://hotel-welcome-f97c0-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "hotel-welcome-f97c0",
+  storageBucket: "hotel-welcome-f97c0.appspot.com",
+  messagingSenderId: "402476476793",
+  appId: "1:402476476793:web:0c828c6086f27a004c27a8"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* AUTO CAPITALIZE */
+function formatName(name) {
+    return name
+        .toLowerCase()
+        .split(" ")
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
+}
+
+/* STATUS */
+function showStatus(text, color){
+    const s = document.getElementById("status");
+    s.innerText = text;
+    s.style.color = color;
+    s.style.opacity = 1;
+
+    setTimeout(() => {
+        s.style.opacity = 0;
+    }, 1200);
+}
+
+/* SAVE */
+window.save = function() {
+    const room = document.getElementById("room").value.trim();
+    let name = document.getElementById("name").value.trim();
+
+    if (!room || !name) {
+        showStatus("Lengkapi data!", "orange");
+        return;
+    }
+
+    name = formatName(name);
+
+    set(ref(db, "rooms/" + room), {
+        name: name
+    });
+
+    localStorage.setItem("lastRoom", room);
+
+    showStatus("Saved ✔", "lightgreen");
+
+    document.getElementById("name").value = "";
+};
+
+/* CLEAR */
+window.clearRoom = function() {
+    const room = document.getElementById("room").value.trim();
+
+    if (!room) {
+        showStatus("Masukkan nomor kamar!", "orange");
+        return;
+    }
+
+    set(ref(db, "rooms/" + room), {
+        name: ""
+    });
+
+    showStatus("Room Cleared ✔", "#ff7675");
+};
+
+/* ENTER FLOW */
+document.getElementById("room").addEventListener("keypress", e => {
+    if(e.key === "Enter"){
+        document.getElementById("name").focus();
+    }
+});
+
+document.getElementById("name").addEventListener("keypress", e => {
+    if(e.key === "Enter"){
+        save();
+    }
+});
+
+/* LOAD LAST ROOM + AUTO FOCUS */
+window.onload = function(){
+    document.getElementById("room").focus();
+
+    const lastRoom = localStorage.getItem("lastRoom");
+    if(lastRoom){
+        document.getElementById("room").value = lastRoom;
+    }
+};
+</script>
+
+</body>
+</html>
