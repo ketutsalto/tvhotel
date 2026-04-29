@@ -87,14 +87,14 @@ function render(data) {
     if (theme === "wedding") {
         el.innerText = "Happy Wedding\n" + (data?.name || "");
 
-        container.style.left = "0%";
-        container.style.width = "55%";
+        container.style.left = "5%";
+        container.style.width = "50%";
     } else {
         el.innerText = data?.name
             ? "Welcome\n" + data.name
             : "Our Valued Guest";
 
-        container.style.left = "8%";
+        container.style.left = "5%";
         container.style.width = "50%";
     }
 }
