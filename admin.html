@@ -38,7 +38,7 @@ h1 {
     font-size: 22px;
 }
 
-input {
+input, select {
     width: 100%;
     padding: 16px;
     margin-bottom: 15px;
@@ -69,11 +69,6 @@ button {
     color: white;
 }
 
-button:active {
-    transform: scale(0.98);
-}
-
-/* STATUS */
 #status {
     text-align: center;
     margin-top: 12px;
@@ -92,6 +87,12 @@ button:active {
     <input id="room" type="number" placeholder="Room Number (ex: 101)">
     <input id="name" type="text" placeholder="Guest Name">
 
+    <!-- 🔥 THEME -->
+    <select id="theme">
+        <option value="default">Default</option>
+        <option value="wedding">Wedding</option>
+    </select>
+
     <button class="save" onclick="save()">SAVE</button>
     <button class="clear" onclick="clearRoom()">CLEAR ROOM</button>
 
@@ -102,64 +103,47 @@ button:active {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
+// 🔥 CONFIG SAMA
 const firebaseConfig = {
-  apiKey: "AIzaSyCURdL6FcrTEitATpSh_8LgRgcj6Fi8gw",
-  authDomain: "hotel-welcome-f97c0.firebaseapp.com",
-  databaseURL: "https://hotel-welcome-f97c0-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "hotel-welcome-f97c0",
-  storageBucket: "hotel-welcome-f97c0.appspot.com",
-  messagingSenderId: "402476476793",
-  appId: "1:402476476793:web:0c828c6086f27a004c27a8"
+  apiKey: "AIzaSyCRTRfBJXa6dIvl__fchkFCaHZr5ZakTrA",
+  authDomain: "tvhotel-e6555.firebaseapp.com",
+  databaseURL: "https://tvhotel-e6555-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "tvhotel-e6555",
+  storageBucket: "tvhotel-e6555.firebasestorage.app",
+  messagingSenderId: "1082612267063",
+  appId: "1:1082612267063:web:1144e0a1e92e99bc0127b2"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-/* AUTO CAPITALIZE */
-function formatName(name) {
-    return name
-        .toLowerCase()
-        .split(" ")
-        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(" ");
-}
-
-/* STATUS */
 function showStatus(text, color){
     const s = document.getElementById("status");
     s.innerText = text;
     s.style.color = color;
     s.style.opacity = 1;
 
-    setTimeout(() => {
-        s.style.opacity = 0;
-    }, 1200);
+    setTimeout(() => s.style.opacity = 0, 1200);
 }
 
-/* SAVE */
 window.save = function() {
     const room = document.getElementById("room").value.trim();
-    let name = document.getElementById("name").value.trim();
+    const name = document.getElementById("name").value.trim();
+    const theme = document.getElementById("theme").value;
 
     if (!room || !name) {
         showStatus("Lengkapi data!", "orange");
         return;
     }
 
-    name = formatName(name);
-
     set(ref(db, "rooms/" + room), {
-        name: name
+        name: name,
+        theme: theme
     });
 
-    localStorage.setItem("lastRoom", room);
-
     showStatus("Saved ✔", "lightgreen");
-
-    document.getElementById("name").value = "";
 };
 
-/* CLEAR */
 window.clearRoom = function() {
     const room = document.getElementById("room").value.trim();
 
@@ -169,33 +153,11 @@ window.clearRoom = function() {
     }
 
     set(ref(db, "rooms/" + room), {
-        name: ""
+        name: "",
+        theme: "default"
     });
 
     showStatus("Room Cleared ✔", "#ff7675");
-};
-
-/* ENTER FLOW */
-document.getElementById("room").addEventListener("keypress", e => {
-    if(e.key === "Enter"){
-        document.getElementById("name").focus();
-    }
-});
-
-document.getElementById("name").addEventListener("keypress", e => {
-    if(e.key === "Enter"){
-        save();
-    }
-});
-
-/* LOAD LAST ROOM + AUTO FOCUS */
-window.onload = function(){
-    document.getElementById("room").focus();
-
-    const lastRoom = localStorage.getItem("lastRoom");
-    if(lastRoom){
-        document.getElementById("room").value = lastRoom;
-    }
 };
 </script>
 
